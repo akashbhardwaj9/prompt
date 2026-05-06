@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OmniPrompt | AI Prompt Suite</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+:root {
+  --sky: #60A5FA;
+  --cyan: #22D3EE;
+  --pastel: #BFDBFE;
+  --white: #FFFFFF;
+  --navy: #1E3A8A;
+  --slate: #475569;
+}
+
+body {
+  background: linear-gradient(135deg, #DBEAFE 0%, #E0F2FE 35%, #FFFFFF 70%, #F0F9FF 100%);
+  background-attachment: fixed;
+  color: var(--navy);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before, body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  z-index: 0;
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+body::before {
+  top: -150px; right: -100px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(34,211,238,0.4), transparent 70%);
+  animation: float 10s ease-in-out infinite;
+}
+
+body::after {
+  bottom: -150px; left: -100px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(96,165,250,0.35), transparent 70%);
+  animation: float 12s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -40px) scale(1.1); }
+}
+
+@keyframes glow {
+  0%, 100% { text-shadow: 0 0 30px rgba(34,211,238,0.5), 0 0 60px rgba(96,165,250,0.3); }
+  50% { text-shadow: 0 0 50px rgba(34,211,238,0.8), 0 0 90px rgba(96,165,250,0.5); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.navbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.8);
+  padding: 1rem 2rem;
+  display: flex; justify-content: center; align-items: center; /* Centered for balance */
+  box-shadow: 0 4px 20px rgba(96,165,250,0.1);
+}
+
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700; font-size: 1.4rem;
+  background: linear-gradient(135deg, #60A5FA, #22D3EE);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.container { max-width: 1200px; margin: auto; padding: 2rem; position: relative; z-index: 1; }
+
+.hero { text-align: center; padding: 1rem 1rem 2rem; animation: fadeUp 0.8s ease; }
+.hero h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 700;
+  background: linear-gradient(135deg, #60A5FA 0%, #22D3EE 50%, #3B82F6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+  letter-spacing: -1.5px;
+  animation: glow 3s ease-in-out infinite;
+}
+.hero p { color: var(--slate); font-size: 1.1rem; font-weight: 500; max-width: 650px; margin: auto; }
+
+/* Tabs UI */
+.tabs-container {
+  display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem;
+}
+.tab-btn {
+  padding: 0.8rem 2rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.5);
+  border: 1px solid rgba(96,165,250,0.3);
+  color: var(--slate);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(96,165,250,0.1);
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, #60A5FA, #22D3EE);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 6px 20px rgba(96,165,250,0.4);
+}
+.tab-content { display: none; animation: fadeUp 0.5s ease; }
+.tab-content.active { display: block; }
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .main-grid { grid-template-columns: 1fr; }
+}
+
+.glass-card {
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 
+    0 10px 40px rgba(96,165,250,0.15),
+    0 2px 10px rgba(34,211,238,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+  transition: all 0.4s ease;
+  height: 100%;
+}
+
+.card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 1.2rem;
+  display: flex; align-items: center; gap: 0.6rem;
+}
+
+/* Image Upload Specifics */
+.upload-zone {
+  border: 2.5px dashed rgba(96,165,250,0.4);
+  border-radius: 18px;
+  padding: 2rem;
+  text-align: center;
+  background: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  min-height: 320px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.upload-zone:hover, .upload-zone.dragging {
+  border-color: #22D3EE;
+  background: rgba(191, 219, 254, 0.3);
+  transform: scale(1.01);
+  box-shadow: 0 0 30px rgba(34,211,238,0.25);
+}
+.upload-zone.dragging { animation: pulse 1s ease-in-out infinite; }
+.upload-icon {
+  font-size: 4rem; margin-bottom: 1rem; display: inline-block;
+  background: linear-gradient(135deg, #60A5FA, #22D3EE);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 15px rgba(96,165,250,0.4));
+}
+.upload-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+.upload-hint { color: var(--slate); font-size: 0.9rem; margin-bottom: 1.2rem; }
+.upload-or {
+  display: flex; align-items: center; gap: 0.8rem; margin: 0.8rem 0;
+  color: var(--slate); font-size: 0.85rem; font-weight: 600; width: 100%;
+}
+.upload-or::before, .upload-or::after {
+  content: ''; flex: 1; height: 1px; background: rgba(96,165,250,0.3);
+}
+.browse-btn {
+  background: linear-gradient(135deg, #60A5FA, #22D3EE); color: white;
+  padding: 0.7rem 1.8rem; border: none; border-radius: 12px; font-weight: 700;
+  cursor: pointer; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(96,165,250,0.4); transition: 0.3s;
+}
+.browse-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(96,165,250,0.5); }
+.url-input-wrap { display: flex; gap: 0.5rem; width: 100%; margin-top: 0.8rem; }
+.text-input, .url-input {
+  flex: 1; padding: 0.7rem 1rem; border: 1.5px solid rgba(96,165,250,0.3);
+  border-radius: 10px; background: rgba(255,255,255,0.8); color: var(--navy);
+  font-size: 0.9rem; font-family: inherit; width: 100%;
+}
+.text-input:focus, .url-input:focus { outline: none; border-color: #60A5FA; box-shadow: 0 0 0 3px rgba(96,165,250,0.15); }
+.url-btn {
+  padding: 0.7rem 1.2rem; background: rgba(96,165,250,0.15);
+  border: 1.5px solid rgba(96,165,250,0.3); border-radius: 10px; color: var(--navy);
+  font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: 0.3s;
+}
+.url-btn:hover { background: rgba(96,165,250,0.3); }
+
+.preview-wrap {
+  position: relative; border-radius: 18px; overflow: hidden;
+  background: linear-gradient(135deg, #DBEAFE, #E0F2FE);
+  min-height: 320px; display: none; align-items: center; justify-content: center;
+}
+.preview-wrap.show { display: flex; animation: fadeUp 0.5s ease; }
+.preview-wrap img { max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 14px; }
+.remove-btn {
+  position: absolute; top: 12px; right: 12px; width: 36px; height: 36px;
+  background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+  border: 1px solid rgba(96,165,250,0.3); border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: var(--navy); transition: 0.3s; z-index: 2;
+}
+.remove-btn:hover { background: #FEE2E2; color: #DC2626; transform: scale(1.1); }
+
+/* Common Options Form Specifics */
+.options-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 1.2rem; }
+.option { background: rgba(255,255,255,0.6); border: 1px solid rgba(96,165,250,0.2); border-radius: 12px; padding: 0.8rem; margin-bottom: 0.5rem; }
+.option-label { font-size: 0.75rem; color: var(--slate); font-weight: 700; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.option select {
+  width: 100%; padding: 0.5rem 0.7rem; border: 1px solid rgba(96,165,250,0.25);
+  border-radius: 8px; background: rgba(255,255,255,0.9); color: var(--navy);
+  font-weight: 600; font-family: inherit; cursor: pointer; font-size: 0.9rem;
+}
+.click-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.click-tag {
+  background: rgba(96,165,250,0.15); color: #1E40AF; padding: 0.3rem 0.8rem;
+  border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(96,165,250,0.3);
+  cursor: pointer; transition: 0.2s;
+}
+.click-tag:hover { background: #60A5FA; color: white; }
+
+.generate-btn {
+  width: 100%; margin-top: 1.2rem; padding: 1rem 2rem;
+  background: linear-gradient(135deg, #60A5FA 0%, #22D3EE 100%);
+  color: white; border: none; border-radius: 14px; font-size: 1.05rem;
+  font-weight: 700; cursor: pointer; position: relative; overflow: hidden;
+  transition: 0.3s; box-shadow: 0 8px 25px rgba(96,165,250,0.4);
+}
+.generate-btn::before {
+  content: ''; position: absolute; top: 0; left: -100%;
+  width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transition: 0.5s;
+}
+.generate-btn:hover::before { left: 100%; }
+.generate-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(96,165,250,0.6), 0 0 50px rgba(34,211,238,0.4); }
+.generate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Outputs Specifics */
+.output-section { display: flex; flex-direction: column; }
+.empty-output {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; padding: 2rem; color: var(--slate); min-height: 350px;
+}
+.empty-output .icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.4; }
+.prompt-output { display: none; flex-direction: column; flex: 1; }
+.prompt-output.show { display: flex; animation: fadeUp 0.5s ease; }
+.prompt-text {
+  background: rgba(255,255,255,0.7); border: 1px solid rgba(34,211,238,0.3);
+  border-left: 4px solid #22D3EE; border-radius: 14px; padding: 1.3rem;
+  color: var(--navy); font-size: 0.95rem; line-height: 1.7; white-space: pre-wrap;
+  font-family: 'Consolas', 'Monaco', monospace; flex: 1; margin-bottom: 1rem;
+  min-height: 200px; box-shadow: inset 0 0 20px rgba(191,219,254,0.3);
+}
+
+.action-row { display: flex; gap: 0.6rem; }
+.action-btn {
+  flex: 1; padding: 0.7rem; background: rgba(255,255,255,0.7); color: var(--navy);
+  border: 1.5px solid rgba(96,165,250,0.3); border-radius: 10px; cursor: pointer;
+  font-weight: 600; font-size: 0.85rem; transition: 0.3s;
+}
+.action-btn:hover {
+  background: linear-gradient(135deg, rgba(96,165,250,0.15), rgba(34,211,238,0.15));
+  border-color: #60A5FA; transform: translateY(-2px);
+}
+.action-btn.primary { background: linear-gradient(135deg, #60A5FA, #22D3EE); color: white; border-color: transparent; }
+
+/* Loading States */
+.loading-state {
+  display: none; flex-direction: column; align-items: center;
+  justify-content: center; flex: 1; min-height: 350px;
+}
+.loading-state.show { display: flex; animation: fadeUp 0.3s ease; }
+.loader-circle {
+  width: 70px; height: 70px; border: 5px solid rgba(96,165,250,0.2);
+  border-top-color: #22D3EE; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1.2rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 1rem; font-weight: 600; color: var(--navy); margin-bottom: 0.4rem; }
+.loading-sub { font-size: 0.85rem; color: var(--slate); }
+
+/* History Specifics */
+.history-section { margin-top: 2rem; }
+.history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+.history-item {
+  background: rgba(255,255,255,0.6); border-radius: 14px; overflow: hidden;
+  cursor: pointer; transition: 0.3s; border: 1px solid rgba(96,165,250,0.2);
+  aspect-ratio: 1; position: relative;
+}
+.history-item:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(96,165,250,0.3); border-color: #60A5FA; }
+.history-item img { width: 100%; height: 100%; object-fit: cover; }
+.history-empty { grid-column: 1/-1; text-align: center; padding: 1.5rem; color: var(--slate); font-style: italic; }
+
+.txt-history-container { display: flex; flex-direction: column; gap: 0.8rem; }
+.txt-history-item {
+  background: rgba(255,255,255,0.6); padding: 1rem; border-radius: 12px;
+  cursor: pointer; transition: 0.3s; border: 1px solid rgba(96,165,250,0.2);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.txt-history-item:hover { background: rgba(96,165,250,0.15); border-color: #60A5FA; transform: translateY(-2px); }
+.txt-history-item strong { color: var(--navy); }
+.txt-history-item span { color: var(--slate); font-size: 0.85rem; }
+
+footer { text-align: center; padding: 2rem; color: var(--slate); font-size: 0.9rem; font-weight: 500; }
+#fileInput { display: none; }
+
+@media (max-width: 600px) {
+  .container { padding: 1rem; }
+  .glass-card { padding: 1.5rem; }
+  .navbar { padding: 1rem; }
+  .tabs-container { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">✨ OmniPrompt</div>
+</nav>
+
+<div class="container">
+  <section class="hero">
+    <h1>Supercharge Your AI Creation</h1>
+    <p>Select a tool below to analyze images or structure text keywords into powerful, optimized prompts.</p>
+  </section>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs-container">
+    <button class="tab-btn active" onclick="switchTab('image')">🔍 Image to Prompt</button>
+    <button class="tab-btn" onclick="switchTab('text')">📝 Text Prompt Builder</button>
+  </div>
+
+  <!-- TAB 1: Image to Prompt -->
+  <div id="tab-image" class="tab-content active">
+    <div class="main-grid">
+      <div class="glass-card">
+        <div class="card-title">📤 Upload Image</div>
+
+        <div class="upload-zone" id="imgUploadZone">
+          <input type="file" id="fileInput" accept="image/*">
+          <div class="upload-icon">🖼️</div>
+          <div class="upload-title">Drop your image here</div>
+          <div class="upload-hint">PNG, JPG, WEBP up to 10MB</div>
+          <button class="browse-btn" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+          <div class="upload-or">OR</div>
+          <div class="url-input-wrap">
+            <input type="text" class="url-input" id="imgUrlInput" placeholder="Paste image URL here..." />
+            <button class="url-btn" onclick="imgLoadFromURL()">Load</button>
+          </div>
+        </div>
+
+        <div class="preview-wrap" id="imgPreviewWrap">
+          <button class="remove-btn" onclick="imgRemoveImage()">✕</button>
+          <img id="imgPreview" src="" alt="Preview">
+        </div>
+
+        <div class="options-row">
+          <div class="option">
+            <div class="option-label">Prompt Style</div>
+            <select id="imgPromptStyle">
+              <option value="midjourney">Midjourney</option>
+              <option value="stable">Stable Diffusion</option>
+              <option value="dalle">DALL-E</option>
+              <option value="general">General / Descriptive</option>
+            </select>
+          </div>
+          <div class="option">
+            <div class="option-label">Detail Level</div>
+            <select id="imgDetailLevel">
+              <option value="brief">Brief</option>
+              <option value="detailed" selected>Detailed</option>
+              <option value="extreme">Ultra Detailed</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="generate-btn" id="imgGenerateBtn" onclick="imgGeneratePrompt()" disabled>
+          ✨ Generate Image Prompt
+        </button>
+      </div>
+
+      <div class="glass-card output-section">
+        <div class="card-title">💬 Generated Prompt</div>
+
+        <div class="empty-output" id="imgEmptyOutput">
+          <div class="icon">💡</div>
+          <h3 style="color:var(--navy); margin-bottom:0.5rem;">No prompt yet</h3>
+          <p>Upload an image to generate its AI prompt</p>
+        </div>
+
+        <div class="loading-state" id="imgLoadingState">
+          <div class="loader-circle"></div>
+          <div class="loading-text">Analyzing image...</div>
+          <div class="loading-sub">Extracting visual elements & style</div>
+        </div>
+
+        <div class="prompt-output" id="imgPromptOutput">
+          <div class="prompt-text" id="imgPromptText"></div>
+          <div class="click-tags" id="imgTagsOutput"></div>
+          <div class="action-row">
+            <button class="action-btn primary" onclick="imgCopyPrompt()">📋 Copy</button>
+            <button class="action-btn" onclick="imgGeneratePrompt()">🔄 Regenerate</button>
+            <button class="action-btn" onclick="imgDownloadPrompt()">💾 Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="glass-card history-section">
+      <div class="card-title">📚 Recent Image Uploads</div>
+      <div class="history-grid" id="imgHistoryGrid">
+        <div class="history-empty">No uploads yet. Generate your first prompt above!</div>
+      </div>
+    </section>
+  </div>
+
+
+  <!-- TAB 2: Text Prompt Builder -->
+  <div id="tab-text" class="tab-content">
+    <div class="main-grid">
+      <div class="glass-card">
+        <div class="card-title">🔑 Base Inputs</div>
+
+        <div class="option" style="margin-bottom: 1rem;">
+          <div class="option-label">Keywords (comma-separated)</div>
+          <input type="text" class="text-input" id="txtKeywords" placeholder="e.g., python, web scraper, beginner" />
+          <div class="click-tags">
+            <span class="click-tag" onclick="txtSetKeywords('blog, AI, future')">blog, AI, future</span>
+            <span class="click-tag" onclick="txtSetKeywords('logo, coffee shop, minimal')">logo design</span>
+            <span class="click-tag" onclick="txtSetKeywords('python, web scraper')">python project</span>
+            <span class="click-tag" onclick="txtSetKeywords('story, dragon, adventure')">story idea</span>
+          </div>
+        </div>
+
+        <div class="options-row">
+          <div class="option">
+            <div class="option-label">Purpose</div>
+            <select id="txtPurpose">
+              <option value="writing">Writing / Blog</option>
+              <option value="coding">Coding / Development</option>
+              <option value="image">Image Generation</option>
+              <option value="story">Story / Creative</option>
+              <option value="business">Business / Marketing</option>
+              <option value="education">Education / Learning</option>
+              <option value="general">General Question</option>
+            </select>
+          </div>
+          <div class="option">
+            <div class="option-label">Tone</div>
+            <select id="txtTone">
+              <option value="professional">Professional</option>
+              <option value="creative">Creative</option>
+              <option value="technical">Technical</option>
+              <option value="casual">Casual</option>
+              <option value="persuasive">Persuasive</option>
+              <option value="academic">Academic</option>
+            </select>
+          </div>
+          <div class="option">
+            <div class="option-label">Length</div>
+            <select id="txtLength">
+              <option value="short">Short & Concise</option>
+              <option value="medium" selected>Medium</option>
+              <option value="long">Detailed / Long</option>
+            </select>
+          </div>
+          <div class="option">
+            <div class="option-label">Target Audience</div>
+            <input type="text" class="text-input" id="txtAudience" placeholder="e.g., beginners" value="general audience" style="padding: 0.5rem;" />
+          </div>
+        </div>
+
+        <button class="generate-btn" onclick="txtHandleGenerate()">
+          🚀 Generate Perfect Prompt
+        </button>
+      </div>
+
+      <div class="glass-card output-section">
+        <div class="card-title">💬 Generated Prompt</div>
+
+        <div class="empty-output" id="txtEmptyOutput">
+          <div class="icon">📝</div>
+          <h3 style="color:var(--navy); margin-bottom:0.5rem;">Ready to build</h3>
+          <p>Enter keywords and configure options to build your prompt.</p>
+        </div>
+
+        <div class="loading-state" id="txtLoadingState">
+          <div class="loader-circle"></div>
+          <div class="loading-text">Structuring prompt...</div>
+          <div class="loading-sub">Applying frameworks & formatting</div>
+        </div>
+
+        <div class="prompt-output" id="txtPromptOutput">
+          <div class="prompt-text" id="txtPromptText"></div>
+          <div class="action-row">
+            <button class="action-btn primary" onclick="txtCopyPrompt()">📋 Copy</button>
+            <button class="action-btn" onclick="txtHandleGenerate()">🔄 Regenerate</button>
+            <button class="action-btn" onclick="txtClearAll()">🗑️ Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="glass-card history-section">
+      <div class="card-title">📚 Recent Text Prompts</div>
+      <div class="txt-history-container" id="txtHistoryGrid">
+        <div class="history-empty">No prompts generated yet.</div>
+      </div>
+    </section>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2025 OmniPrompt · Your complete suite for AI generation 💙</p>
+</footer>
+
+<script>
+// ================= TAB LOGIC =================
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+  
+  event.target.classList.add('active');
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+}
+
+// ================= TOOL 1: IMAGE TO PROMPT =================
+const imgUploadZone = document.getElementById('imgUploadZone');
+const fileInput = document.getElementById('fileInput');
+const imgPreviewWrap = document.getElementById('imgPreviewWrap');
+const imgPreview = document.getElementById('imgPreview');
+const imgGenerateBtn = document.getElementById('imgGenerateBtn');
+const imgEmptyOutput = document.getElementById('imgEmptyOutput');
+const imgLoadingState = document.getElementById('imgLoadingState');
+const imgPromptOutput = document.getElementById('imgPromptOutput');
+const imgPromptText = document.getElementById('imgPromptText');
+const imgTagsOutput = document.getElementById('imgTagsOutput');
+const imgHistoryGrid = document.getElementById('imgHistoryGrid');
+
+let imgCurrentImage = null;
+let imgHistory = [];
+
+fileInput.addEventListener('change', (e) => imgHandleFile(e.target.files[0]));
+imgUploadZone.addEventListener('dragover', (e) => { e.preventDefault(); imgUploadZone.classList.add('dragging'); });
+imgUploadZone.addEventListener('dragleave', () => { imgUploadZone.classList.remove('dragging'); });
+imgUploadZone.addEventListener('drop', (e) => {
+  e.preventDefault(); imgUploadZone.classList.remove('dragging');
+  if (e.dataTransfer.files[0]) imgHandleFile(e.dataTransfer.files[0]);
+});
+
+function imgHandleFile(file) {
+  if (!file || !file.type.startsWith('image/')) { alert('⚠️ Please upload a valid image file'); return; }
+  if (file.size > 10 * 1024 * 1024) { alert('⚠️ Image must be under 10MB'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => { imgShowPreview(e.target.result); };
+  reader.readAsDataURL(file);
+}
+
+function imgLoadFromURL() {
+  const url = document.getElementById('imgUrlInput').value.trim();
+  if (!url) { alert('⚠️ Please enter an image URL'); return; }
+  imgShowPreview(url);
+}
+
+function imgShowPreview(src) {
+  imgCurrentImage = src;
+  imgPreview.src = src;
+  imgUploadZone.style.display = 'none';
+  imgPreviewWrap.classList.add('show');
+  imgGenerateBtn.disabled = false;
+}
+
+function imgRemoveImage() {
+  imgCurrentImage = null;
+  imgPreview.src = '';
+  imgUploadZone.style.display = 'flex';
+  imgPreviewWrap.classList.remove('show');
+  imgGenerateBtn.disabled = true;
+  imgEmptyOutput.style.display = 'flex';
+  imgPromptOutput.classList.remove('show');
+  document.getElementById('imgUrlInput').value = '';
+  fileInput.value = '';
+}
+
+function imgGeneratePrompt() {
+  if (!imgCurrentImage) return;
+  const style = document.getElementById('imgPromptStyle').value;
+  const detail = document.getElementById('imgDetailLevel').value;
+
+  imgEmptyOutput.style.display = 'none';
+  imgPromptOutput.classList.remove('show');
+  imgLoadingState.classList.add('show');
+
+  setTimeout(() => {
+    const result = imgBuildPrompt(style, detail);
+    imgPromptText.innerText = result.prompt;
+    imgTagsOutput.innerHTML = result.tags.map(t => `<span class="click-tag">${t}</span>`).join('');
+    imgLoadingState.classList.remove('show');
+    imgPromptOutput.classList.add('show');
+    imgAddToHistory(imgCurrentImage);
+  }, 1500);
+}
+
+function imgBuildPrompt(style, detail) {
+  const subjects = ['mystical landscape', 'futuristic cityscape', 'serene portrait', 'abstract composition', 'natural scene'];
+  const moods = ['ethereal', 'dramatic', 'peaceful', 'mysterious', 'vibrant', 'cinematic'];
+  const lights = ['golden hour lighting', 'soft diffused light', 'dramatic rim lighting', 'volumetric god rays', 'neon ambient glow'];
+  const colors = ['warm earth tones', 'cool blue palette', 'vibrant saturated colors', 'pastel hues', 'monochromatic scheme'];
+  const styles = ['hyperrealistic', 'photorealistic', 'cinematic photography', 'digital art', 'concept art'];
+  const cameras = ['shot on Sony A7R IV', '85mm lens', 'shallow depth of field', 'wide angle perspective', 'macro detail'];
+
+  const subject = subjects[Math.floor(Math.random()*subjects.length)];
+  const mood = moods[Math.floor(Math.random()*moods.length)];
+  const light = lights[Math.floor(Math.random()*lights.length)];
+  const color = colors[Math.floor(Math.random()*colors.length)];
+  const styleD = styles[Math.floor(Math.random()*styles.length)];
+  const camera = cameras[Math.floor(Math.random()*cameras.length)];
+
+  const tags = [styleD, mood, light, color, camera, '8K', 'highly detailed'];
+  let prompt = '';
+
+  if (style === 'midjourney') {
+    prompt = `A ${mood} ${subject}, ${styleD} style, ${light}, ${color}, ${camera}, ultra detailed, sharp focus, masterpiece quality, trending on ArtStation`;
+    if (detail === 'detailed') prompt += `, intricate details, professional composition, award-winning photography`;
+    if (detail === 'extreme') prompt += `, intricate details, professional composition, award-winning photography, hyperrealistic textures, perfect lighting, depth of field, bokeh, atmospheric perspective, color grading, film grain`;
+    prompt += ` --ar 16:9 --v 6 --style raw --q 2`;
+  } else if (style === 'stable') {
+    prompt = `(masterpiece:1.3), (best quality:1.2), ${subject}, ${mood} atmosphere, ${light}, ${color}, ${styleD}, ${camera}`;
+    if (detail !== 'brief') prompt += `, intricate details, sharp focus, 8k uhd, professional, dramatic composition`;
+    if (detail === 'extreme') prompt += `, photorealistic, hyperdetailed, ultra realistic textures, cinematic lighting, perfect anatomy`;
+    prompt += `\n\nNegative prompt: blurry, low quality, distorted, ugly, deformed, watermark, text, signature, jpeg artifacts`;
+  } else if (style === 'dalle') {
+    prompt = `Create a ${mood} ${subject} in ${styleD} style. The scene features ${light} and ${color}, captured with ${camera}.`;
+    if (detail !== 'brief') prompt += ` The composition emphasizes depth and atmosphere with intricate details throughout.`;
+    if (detail === 'extreme') prompt += ` Render in ultra-high resolution with photorealistic textures, professional color grading, and award-winning artistic direction.`;
+  } else {
+    prompt = `Subject: ${subject}\nMood: ${mood}\nLighting: ${light}\nColor Palette: ${color}\nStyle: ${styleD}\nCamera: ${camera}`;
+    if (detail !== 'brief') prompt += `\nComposition: balanced with strong focal point\nDetails: intricate textures, sharp focus, 8K resolution`;
+    if (detail === 'extreme') prompt += `\nPost-processing: cinematic color grading, subtle film grain, atmospheric depth\nQuality: professional, award-winning, hyperrealistic`;
+  }
+  return { prompt, tags };
+}
+
+function imgCopyPrompt() {
+  navigator.clipboard.writeText(imgPromptText.innerText).then(() => alert('✅ Prompt copied to clipboard!'));
+}
+function imgDownloadPrompt() {
+  const blob = new Blob([imgPromptText.innerText], { type: 'text/plain' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'image-prompt.txt'; a.click();
+}
+function imgAddToHistory(src) {
+  if (imgHistory.includes(src)) return;
+  imgHistory.unshift(src);
+  if (imgHistory.length > 8) imgHistory.pop();
+  imgRenderHistory();
+}
+function imgRenderHistory() {
+  if (imgHistory.length === 0) {
+    imgHistoryGrid.innerHTML = '<div class="history-empty">No uploads yet.</div>';
+    return;
+  }
+  imgHistoryGrid.innerHTML = imgHistory.map((src, i) => 
+    `<div class="history-item" onclick="imgReloadHistory(${i})"><img src="${src}" alt="History ${i}"></div>`
+  ).join('');
+}
+function imgReloadHistory(i) { imgShowPreview(imgHistory[i]); }
+
+// ================= TOOL 2: TEXT PROMPT BUILDER =================
+let txtHistory = [];
+const txtEmptyOutput = document.getElementById('txtEmptyOutput');
+const txtLoadingState = document.getElementById('txtLoadingState');
+const txtPromptOutput = document.getElementById('txtPromptOutput');
+const txtPromptText = document.getElementById('txtPromptText');
+
+function txtSetKeywords(text) {
+  document.getElementById('txtKeywords').value = text;
+}
+
+function txtHandleGenerate() {
+  const keywords = document.getElementById('txtKeywords').value.trim();
+  if (!keywords) {
+    alert('⚠️ Please enter at least one keyword!');
+    return;
+  }
+
+  txtEmptyOutput.style.display = 'none';
+  txtPromptOutput.classList.remove('show');
+  txtLoadingState.classList.add('show');
+
+  // Short timeout for visual feedback
+  setTimeout(() => {
+    txtGenerateLogic();
+  }, 600);
+}
+
+function txtGenerateLogic() {
+  const keywords = document.getElementById('txtKeywords').value.trim();
+  const purpose = document.getElementById('txtPurpose').value;
+  const tone = document.getElementById('txtTone').value;
+  const length = document.getElementById('txtLength').value;
+  const audience = document.getElementById('txtAudience').value.trim() || 'general audience';
+
+  const keywordList = keywords.split(',').map(k => k.trim()).filter(k => k);
+  const prompt = txtBuildPromptString(keywordList, purpose, tone, length, audience);
+
+  txtPromptText.innerText = prompt;
+  txtLoadingState.classList.remove('show');
+  txtPromptOutput.classList.add('show');
+  
+  txtSaveToHistory(keywords, prompt);
+}
+
+function txtBuildPromptString(keywords, purpose, tone, length, audience) {
+  const lengthMap = {
+    short: '150-250 words', medium: '400-600 words', long: '800-1200 words with detailed sections'
+  };
+  const templates = {
+    writing: `Act as an expert content writer with 10+ years of experience.\n\n📝 TASK: Write a ${tone} article about: **${keywords.join(', ')}**\n\n🎯 TARGET AUDIENCE: ${audience}\n📏 LENGTH: ${lengthMap[length]}\n🎨 TONE: ${tone}\n\nREQUIREMENTS:\n✓ Start with an engaging hook that captures attention\n✓ Naturally integrate keywords: ${keywords.map(k => `"${k}"`).join(', ')}\n✓ Use clear headings and subheadings (H2, H3)\n✓ Include real examples and actionable insights\n✓ End with a strong conclusion and call-to-action\n✓ Optimize for SEO without keyword stuffing\n\nOUTPUT FORMAT: Markdown with proper structure.`,
+    coding: `Act as a senior software engineer and coding mentor.\n\n💻 TASK: Create a complete ${tone} project/code involving: **${keywords.join(', ')}**\n\n🎯 TARGET LEVEL: ${audience}\n📏 SCOPE: ${lengthMap[length]}\n\nREQUIREMENTS:\n✓ Provide clean, production-ready code with comments\n✓ Explain the logic step-by-step\n✓ Include error handling and best practices\n✓ Show example usage and expected output\n✓ Mention dependencies/installation steps\n✓ Suggest improvements and next steps\n\nOUTPUT FORMAT:\n1. Brief overview\n2. Code with comments\n3. Explanation\n4. How to run\n5. Possible enhancements`,
+    image: `Create a highly detailed AI image generation prompt.\n\n🎨 SUBJECT: ${keywords.join(', ')}\n🎭 STYLE: ${tone}\n👁️ AUDIENCE: ${audience}\n\nPROMPT:\nA stunning ${tone} ${keywords[0]} featuring ${keywords.slice(1).join(', ')}, ultra-detailed, \ncinematic lighting, 8k resolution, sharp focus, professional photography, \nvibrant colors, dramatic composition, trending on ArtStation, \nmasterpiece quality, hyper-realistic textures.\n\nNEGATIVE PROMPT: blurry, low quality, distorted, watermark, text, ugly, deformed.\n\nPARAMETERS: --ar 16:9 --v 6 --style raw`,
+    story: `Act as a master storyteller and creative writer.\n\n📖 STORY ELEMENTS: ${keywords.join(', ')}\n🎭 TONE: ${tone}\n👥 AUDIENCE: ${audience}\n📏 LENGTH: ${lengthMap[length]}\n\nCRAFT A STORY THAT INCLUDES:\n✓ A compelling opening that hooks the reader\n✓ Well-developed characters with clear motivations\n✓ Vivid setting and atmospheric descriptions\n✓ Rising action with conflict and tension\n✓ A climactic moment that resolves meaningfully\n✓ Themes woven naturally through: ${keywords.join(', ')}\n\nSTYLE: Use sensory details, dialogue, and show-don't-tell technique.`,
+    business: `Act as a top-tier marketing strategist and business consultant.\n\n💼 FOCUS AREAS: ${keywords.join(', ')}\n🎯 AUDIENCE: ${audience}\n🎨 TONE: ${tone}\n📏 DEPTH: ${lengthMap[length]}\n\nDELIVER:\n✓ Executive summary\n✓ Market analysis related to: ${keywords.join(', ')}\n✓ Strategic recommendations (3-5 actionable points)\n✓ Implementation roadmap\n✓ KPIs and success metrics\n✓ Potential risks and mitigation\n✓ ROI projections\n\nFORMAT: Professional business document with bullet points and clear sections.`,
+    education: `Act as an expert educator and curriculum designer.\n\n📚 TOPIC: ${keywords.join(', ')}\n👨‍🎓 LEVEL: ${audience}\n🎨 STYLE: ${tone}\n📏 DEPTH: ${lengthMap[length]}\n\nCREATE A LEARNING GUIDE WITH:\n✓ Clear learning objectives\n✓ Simple definitions of key terms: ${keywords.join(', ')}\n✓ Step-by-step explanations with analogies\n✓ Real-world examples and use cases\n✓ Practice questions or exercises\n✓ Visual descriptions (diagrams/charts to draw)\n✓ Summary and key takeaways\n✓ Resources for further learning\n\nTEACHING APPROACH: Make complex ideas simple and engaging.`,
+    general: `Act as a knowledgeable expert assistant.\n\n❓ TOPIC/QUESTION: ${keywords.join(', ')}\n🎯 AUDIENCE: ${audience}\n🎨 TONE: ${tone}\n📏 RESPONSE LENGTH: ${lengthMap[length]}\n\nPROVIDE A RESPONSE THAT:\n✓ Directly addresses: ${keywords.join(', ')}\n✓ Is well-structured with clear sections\n✓ Includes relevant examples\n✓ Anticipates follow-up questions\n✓ Offers practical, actionable insights\n✓ Cites considerations or different perspectives\n\nFORMAT: Use headings, bullet points, and clear paragraphs.`
+  };
+  return templates[purpose] || templates.general;
+}
+
+function txtCopyPrompt() {
+  navigator.clipboard.writeText(txtPromptText.innerText).then(() => alert('✅ Prompt copied to clipboard!'));
+}
+
+function txtClearAll() {
+  document.getElementById('txtKeywords').value = '';
+  document.getElementById('txtAudience').value = 'general audience';
+  txtPromptOutput.classList.remove('show');
+  txtLoadingState.classList.remove('show');
+  txtEmptyOutput.style.display = 'flex';
+}
+
+function txtSaveToHistory(keywords, prompt) {
+  // Prevent exact duplicates in a row
+  if (txtHistory.length > 0 && txtHistory[0].prompt === prompt) return;
+  
+  txtHistory.unshift({ keywords, prompt, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+  if (txtHistory.length > 5) txtHistory.pop();
+  txtRenderHistory();
+}
+
+function txtRenderHistory() {
+  const div = document.getElementById('txtHistoryGrid');
+  if (txtHistory.length === 0) {
+    div.innerHTML = '<div class="history-empty">No prompts generated yet.</div>';
+    return;
+  }
+  div.innerHTML = txtHistory.map((h, i) => 
+    `<div class="txt-history-item" onclick="txtLoadHistory(${i})">
+      <strong>🔑 ${h.keywords}</strong> <span>${h.time}</span>
+    </div>`
+  ).join('');
+}
+
+function txtLoadHistory(i) {
+  txtPromptText.innerText = txtHistory[i].prompt;
+  document.getElementById('txtKeywords').value = txtHistory[i].keywords;
+  txtEmptyOutput.style.display = 'none';
+  txtLoadingState.classList.remove('show');
+  txtPromptOutput.classList.add('show');
+  // Scroll to view
+  document.getElementById('tab-text').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
